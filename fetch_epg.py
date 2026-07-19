@@ -31,10 +31,10 @@ def fetch_day(triplet, day_start, day_end):
         "related_levels": "2",
         "include_related": "1",
         "expand_related": "full",
-        "limit": "200",
+        "limit": "100",
         "offset": "0",
     }
-    url = API_BASE + urllib.parse.quote(triplet) + "?" + urllib.parse.urlencode(params)
+    url = API_BASE + triplet + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (7plus-epg bot)",
         "Accept": "application/json",
