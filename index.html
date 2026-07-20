@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>7plus EPG</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2334d399'/><text x='50' y='74' font-size='62' font-family='Arial' font-weight='900' fill='%230c0e10' text-anchor='middle'>7</text></svg>">
+<link rel="icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -87,10 +87,7 @@ body {
   display: flex; align-items: center; gap: 8px;
 }
 .brand-logo {
-  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
-  background: var(--active); color: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  height: 24px; width: auto; flex-shrink: 0; display: block;
 }
 .ist-clock {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
@@ -475,7 +472,7 @@ mark.hl { background: rgba(251,191,36,.25); border-radius: 2px; padding: 0 1px; 
     <span class="menu-btn-icon-wrap">☰<span class="menu-pulse" id="menu-pulse"></span></span>
     <span class="menu-btn-label">Channels</span>
   </button>
-  <div class="brand"><span class="brand-logo">7</span>7plus EPG</div>
+  <div class="brand"><img class="brand-logo" src="assets/logo.png" alt="7plus">7plus EPG</div>
   <div class="ist-clock" id="ist-clock">--:--:--</div>
   <button class="tz-pill" id="tz-pill" onclick="openTZPicker()" title="Click to change timezone"><span id="tz-label">—</span></button>
   <div class="search-wrap">
@@ -511,7 +508,6 @@ mark.hl { background: rgba(251,191,36,.25); border-radius: 2px; padding: 0 1px; 
       <span class="ch-live-dot" id="badge-7two"></span>
     </div>
     <div class="ch-item" id="tab-7mate" onclick="switchChannel('7mate')">
-      <span class="ch-num-badge">73</span>
       <span class="ch-name">7mate</span>
       <span class="ch-live-dot" id="badge-7mate"></span>
     </div>
@@ -695,7 +691,7 @@ function showToast(msg) {
 
 function updateChannelUI(tag) {
   const ch = CHANNELS[tag];
-  document.getElementById('ch-heading-name').textContent = ch.number + ' · ' + ch.name;
+  document.getElementById('ch-heading-name').textContent = ch.name;
 }
 
 function updateOnAir(events) {
@@ -922,7 +918,7 @@ async function fetchGuide(force) {
   currentDate = pills.includes(today) ? today : (pills[0] || '');
   updateChannelUI(currentChannel);
   ALL_TAGS.forEach(t => updateLiveBadge(t, eventsByChannel[t]));
-  if (currentDate) render();
+  if (currentDate) render(true);
   else document.getElementById('guide-container').innerHTML =
     '<div class="empty-state"><div class="empty-title">No Data</div><div class="empty-sub">No schedule available yet.</div></div>';
 }
@@ -935,7 +931,7 @@ function renderDatePicker() {
     `<button class="date-pill${d === currentDate ? ' active' : ''}${d === today ? ' today' : ''}" onclick="selectDate('${d}')">${formatDateLabel(d)}${d === today ? ' · Today' : ''}</button>`
   ).join('');
 }
-function selectDate(d) { currentDate = d; renderDatePicker(); render(); }
+function selectDate(d) { currentDate = d; renderDatePicker(); render(true); }
 
 function switchChannel(tag) {
   currentChannel = tag;
@@ -948,7 +944,7 @@ function switchChannel(tag) {
   const today = todayLocal(), pills = datePillsByChannel[tag];
   if (!currentDate || !pills.includes(currentDate)) currentDate = pills.includes(today) ? today : (pills[0] || '');
   renderDatePicker();
-  if (currentDate) render();
+  if (currentDate) render(true);
   else document.getElementById('guide-container').innerHTML =
     '<div class="empty-state"><div class="empty-title">No Data</div><div class="empty-sub">No schedule available yet.</div></div>';
 }
@@ -980,7 +976,7 @@ async function refreshCurrent() {
   btn.classList.remove('spinning'); btn.disabled = false;
 }
 
-function render() {
+function render(scrollToLive) {
   const dayEvents = getDayEvents(currentChannel, currentDate);
   const now = Date.now();
   const isToday = currentDate === todayLocal();
@@ -1079,6 +1075,13 @@ function render() {
   });
 
   updateProgressBars();
+
+  if (scrollToLive && isToday) {
+    setTimeout(() => {
+      const lv = container.querySelector('.event-card.is-live');
+      if (lv) lv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  }
 }
 
 (function initChannelUI() {
