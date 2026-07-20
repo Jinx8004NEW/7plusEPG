@@ -86,9 +86,6 @@ body {
   white-space: nowrap; flex-shrink: 0;
   display: flex; align-items: center; gap: 8px;
 }
-.brand-logo {
-  height: 24px; width: auto; flex-shrink: 0; display: block;
-}
 .ist-clock {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   color: var(--text2);
@@ -472,7 +469,7 @@ mark.hl { background: rgba(251,191,36,.25); border-radius: 2px; padding: 0 1px; 
     <span class="menu-btn-icon-wrap">☰<span class="menu-pulse" id="menu-pulse"></span></span>
     <span class="menu-btn-label">Channels</span>
   </button>
-  <div class="brand"><img class="brand-logo" src="assets/logo.png" alt="7plus">7plus EPG</div>
+  <div class="brand">7plus EPG</div>
   <div class="ist-clock" id="ist-clock">--:--:--</div>
   <button class="tz-pill" id="tz-pill" onclick="openTZPicker()" title="Click to change timezone"><span id="tz-label">—</span></button>
   <div class="search-wrap">
@@ -773,14 +770,16 @@ function buildText(imgs = false) {
   const evs = getDayEvents(currentChannel, currentDate);
   if (!evs.length) return '';
   const ch = CHANNELS[currentChannel];
-  return [`📺 ${ch.name} (${ch.number})  —  ${currentDate}`,
-    '─'.repeat(44),
-    ...evs.map(ev => {
-      const s = toIST(ev.scheduledDate), e = toIST(ev.scheduledDate + ev.duration * 60000);
-      const l = `${s}–${e}  ${ev.programTitle}`;
-      return imgs ? `${l}\n   🖼 ${ev.imageUrl}` : l;
-    }),
-    '─'.repeat(44), `Guide updated: ${guideMeta.generatedAt ? toFullLocal(guideMeta.generatedAt) : '—'}`].join('\n');
+  const dateLabel = new Date(currentDate + 'T12:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const rule = '─'.repeat(40);
+  const lines = evs.map(ev => {
+    const s = toIST(ev.scheduledDate);
+    const sub = ev.episodeTitle ? ` (${ev.episodeTitle})` : '';
+    const img = imgs && ev.imageUrl ? `  🖼 ${ev.imageUrl}` : '';
+    return `${s}  ${ev.programTitle}${sub}${img}`;
+  });
+  const updated = guideMeta.generatedAt ? toFullLocal(guideMeta.generatedAt) : '—';
+  return [`📺 ${ch.name} · ${dateLabel}`, rule, ...lines, rule, `${evs.length} shows · Guide updated ${updated}`].join('\n');
 }
 function exportText() { const t = buildText(false); if (!t) { showToast('No data'); return; } navigator.clipboard?.writeText(t).then(() => showToast('✓ Copied')); }
 function exportTextWithImages() { const t = buildText(true); if (!t) { showToast('No data'); return; } navigator.clipboard?.writeText(t).then(() => showToast('✓ Copied with images')); }
